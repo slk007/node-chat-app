@@ -4,43 +4,36 @@ const express = require('express');
 const socketIO = require('socket.io');
 
 const {generateMessage} = require('./utils/message');
+const publicPath = path.join(__dirname, '../public');
 const port = process.env.PORT || 3000;
-const  publicPath = path.join(__dirname, '../public');
 let app = express();
-
-let server = http.createServer(app);	// now we can use server instead of app 
+let server = http.createServer(app);
 let io = socketIO(server);
 
 app.use(express.static(publicPath));
 
 io.on('connection', (socket) => {
-	console.log('New User Connected');
+  console.log('New user connected');
 
-	socket.emit('newMessage', generateMessage('Admin', 'Welcome to chat room'));
+  socket.emit('newMessage', generateMessage('Admin', 'Welcome to the chat app'));
 
-	socket.broadcast.emit('newMessage', generateMessage('Admin', 'New User Joined'));
+  socket.broadcast.emit('newMessage', generateMessage('Admin', 'New user joined'));
 
-	socket.on('createMessage', (message, callback) => {
-		console.log('createMessage', message);
-		io.emit('newMessage', generateMessage(message.from, message.text));
-		callback('This is from the server.');
+  socket.on('createMessage', (message, callback) => {
+    console.log('createMessage', message);
+    io.emit('newMessage', generateMessage(message.from, message.text));
+    callback('This is from the server.');
+  });
 
-	socket.on('createLocationMessage', (coords) => {
-		io.emit('newMessage', generateMessage('Admin', `${coords.latitude}, ${coords.longitude}`))
-	});
+  socket.on('createLocationMessage', (coords) => {
+    io.emit('newMessage', generateMessage('Admin', `${coords.latitude}, ${coords.longitude}`));
+  });
 
-		// socket.broadcast.emit('newMessage', {
-		// 	from: message.from,
-		// 	text: message.text,
-		// 	createdAt: new Date().getTime()
-		// });
-	});
-
-	socket.on('disconnect', () => {
-		console.log('User was disconnected');
-	});
+  socket.on('disconnect', () => {
+    console.log('User was disconnected');
+  });
 });
 
-server.listen(port, () => {				//using server instead of app
-	console.log(`Started up at port ${port}`);
+server.listen(port, () => {
+  console.log(`Server is up on ${port}`);
 });
